@@ -1,8 +1,9 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
-import 'package:scrum_board/scrum_board_column.dart';
+import 'package:scrum_board/screens/scrum_board.dart';
+import 'package:serverpod_flutter/serverpod_flutter.dart';
+import 'package:serverpod_client/serverpod_flutter.dart';
 
+var client = Client('http://localhost:8080/');
 void main() {
   runApp(const MyApp());
 }
@@ -14,7 +15,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const ScrumBoard(),
     );
   }
 }
@@ -79,27 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
 
-      body: ListView(scrollDirection: Axis.horizontal, children: const [
-        ScrumBoardColumn(header: 'To do'),
-        ScrumBoardColumn(
-          header: 'In progress',
-        ),
-        ScrumBoardColumn(
-          header: 'In review',
-        ),
-        ScrumBoardColumn(
-          header: 'Resolved',
-        ),
-        ScrumBoardColumn(
-          header: 'Deployed to dev',
-        ),
-        ScrumBoardColumn(
-          header: 'Deployed to live',
-        ),
-        ScrumBoardColumn(
-          header: 'Done',
-        ),
-      ]),
+      body: const ScrumBoard(),
 
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,

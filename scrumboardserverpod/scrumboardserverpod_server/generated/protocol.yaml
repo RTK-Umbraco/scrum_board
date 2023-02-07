@@ -1,0 +1,7 @@
+example:
+  - hello:
+workItem:
+  - getWorkItems:
+  - addWorkItem:
+  - updateWorkItem:
+  - deleteWorkItem:

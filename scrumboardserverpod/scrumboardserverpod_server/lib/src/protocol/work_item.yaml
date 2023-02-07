@@ -1,0 +1,5 @@
+class: WorkItem
+table: work_item
+fields:
+  headline: String
+  description: String
