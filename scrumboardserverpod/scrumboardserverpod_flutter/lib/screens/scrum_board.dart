@@ -1,12 +1,12 @@
-import 'package:drag_and_drop_lists/drag_and_drop_lists.dart';
 import 'package:flutter/material.dart';
-import 'package:scrumboardserverpod_flutter/lib/widgets/work_item_widget.dart';
-import 'package:scrumboardserverpod_flutter/models/work_item.dart';
+import 'package:scrumboardserverpod_flutter/lib/widgets/work_item_drag_and_drop_list.dart';
+import 'package:scrumboardserverpod_flutter/main.dart';
 import 'package:scrumboardserverpod_flutter/screens/scrum_board_item_form.dart';
+import 'package:scrumboardserverpod_client/scrumboardserverpod_client.dart';
 
 class ScrumBoard extends StatefulWidget {
-  const ScrumBoard({Key? key}) : super(key: key);
-
+  const ScrumBoard({Key? key, required this.client}) : super(key: key);
+  final Client client;
   @override
   State createState() => _ScrumBoard();
 }
@@ -20,6 +20,22 @@ class ScrumBoardColumn {
 
 class _ScrumBoard extends State<ScrumBoard> {
   late List<ScrumBoardColumn> _scrumBoardColumns;
+  late List<WorkItem> _workItems = [];
+
+  Future<List<WorkItem>> fetchWorkItem() async {
+    try {
+      print('Getting workitems');
+      var workItems = await widget.client.workItem.getWorkItems();
+      _workItems = workItems;
+
+      print('Collted workitems');
+
+      return workItems;
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+      return [];
+    }
+  }
 
   @override
   void initState() {
@@ -34,116 +50,75 @@ class _ScrumBoard extends State<ScrumBoard> {
       'Deployed to live',
       'Done'
     ];
+    _scrumBoardColumns = validateColumnWorkItems(columnHeaderNames);
+  }
 
-    _scrumBoardColumns = List.generate(columnHeaderNames.length, (outerIndex) {
-      return ScrumBoardColumn(
-          columnHeader: columnHeaderNames[outerIndex].toString(),
-          workItems: [
-            WorkItem(
-                header: 'headline 1 headline 1 ', description: 'description 1'),
-            WorkItem(header: 'headline 2', description: 'description 2')
-          ]);
-    });
+  validateColumnWorkItems(List<String> columnHeaderNames) {
+    List<ScrumBoardColumn> scrumBoardColumns = [];
+
+    for (var i = 0; i < columnHeaderNames.length; i++) {
+      if (columnHeaderNames[i].contains('To do')) {
+        scrumBoardColumns.add(ScrumBoardColumn(
+            columnHeader: columnHeaderNames[i].toString(),
+            workItems: _workItems));
+      } else {
+        scrumBoardColumns.add(ScrumBoardColumn(
+            columnHeader: columnHeaderNames[i].toString(), workItems: []));
+      }
+    }
+    return scrumBoardColumns;
+  }
+
+  addWorkItem(WorkItem workItem) async {
+    try {
+      var result = await client.workItem.addWorkItem(workItem);
+
+      if (result) {
+        setState(() {});
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Scrum board'),
-        ),
-        body: DragAndDropLists(
-          children: List.generate(_scrumBoardColumns.length,
-              (columnIndex) => _buildScrumBoardColumns(columnIndex)),
-          onItemReorder: _onItemReorder,
-          onListReorder: _onListReorder,
-          axis: Axis.horizontal,
-          listWidth: 300,
-          listDraggingWidth: 300,
-          listDecoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: const BorderRadius.all(Radius.circular(7.0)),
-            boxShadow: const <BoxShadow>[
-              BoxShadow(
-                color: Colors.black45,
-                spreadRadius: 3.0,
-                blurRadius: 6.0,
-                offset: Offset(2, 3),
-              ),
-            ],
-          ),
-          listPadding: const EdgeInsets.all(8.0),
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-            onPressed: () async {
-              final workItem = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ScrumboardItemForm()));
+      appBar: AppBar(
+        title: const Text('Scrum board'),
+      ),
+      body: FutureBuilder<List<WorkItem>>(
+        future: fetchWorkItem(),
+        builder: (context, snapshot) {
+          List<Widget> children;
+          if (snapshot.hasData) {
+            <Widget>[
+              ColumnDragAndDrop(
+                  scrumBoardColumns: _scrumBoardColumns,
+                  workItems: _scrumBoardColumns[0].workItems = snapshot.data!),
+            ];
+          }
+          return ColumnDragAndDrop(
+            scrumBoardColumns: _scrumBoardColumns,
+            workItems: _workItems,
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+          onPressed: () async {
+            final workItem = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const ScrumboardItemForm()));
 
-              setState(() {
-                _scrumBoardColumns[0].workItems.add(workItem);
-              });
-            },
-            tooltip: 'Add work item',
-            icon: const Icon(Icons.add),
-            label: const Text('Add item')));
-  }
-
-  _buildScrumBoardColumns(int columnIndex) {
-    var scrumBoardColumn = _scrumBoardColumns[columnIndex];
-    return DragAndDropList(
-      header: Row(
-        children: <Widget>[
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(7.0)),
-                color: Colors.blue,
-              ),
-              padding: const EdgeInsets.all(10),
-              child: Text(
-                scrumBoardColumn.columnHeader,
-                style: Theme.of(context).primaryTextTheme.headline6,
-              ),
-            ),
-          ),
-        ],
-      ),
-      leftSide: const VerticalDivider(
-        color: Colors.blue,
-        width: 1.5,
-        thickness: 1.5,
-      ),
-      rightSide: const VerticalDivider(
-        color: Colors.blue,
-        width: 1.5,
-        thickness: 1.5,
-      ),
-      children: List.generate(scrumBoardColumn.workItems.length,
-          (index) => _buildScrumBoardItem(scrumBoardColumn.workItems[index])),
+            setState(() {
+              _scrumBoardColumns[0].workItems.add(workItem);
+              addWorkItem(workItem);
+            });
+          },
+          tooltip: 'Add work item',
+          icon: const Icon(Icons.add),
+          label: const Text('Add item')),
     );
-  }
-
-  _buildScrumBoardItem(WorkItem workItem) {
-    return DragAndDropItem(child: WorkItemWidget(workItem: workItem));
-  }
-
-  _onItemReorder(
-      int oldItemIndex, int oldListIndex, int newItemIndex, int newListIndex) {
-    setState(() {
-      var movedItem =
-          _scrumBoardColumns[oldListIndex].workItems.removeAt(oldItemIndex);
-      _scrumBoardColumns[newListIndex]
-          .workItems
-          .insert(newItemIndex, movedItem);
-    });
-  }
-
-  _onListReorder(int oldListIndex, int newListIndex) {
-    setState(() {
-      var movedList = _scrumBoardColumns.removeAt(oldListIndex);
-      _scrumBoardColumns.insert(newListIndex, movedList);
-    });
   }
 }

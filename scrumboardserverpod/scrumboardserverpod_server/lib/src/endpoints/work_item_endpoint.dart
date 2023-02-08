@@ -8,6 +8,7 @@ class WorkItemEndpoint extends Endpoint {
 
   Future<bool> addWorkItem(Session session, WorkItem workItem) async {
     //Add try catched if insert fails.
+    session.log('Logging session');
     await WorkItem.insert(session, workItem);
     return true;
   }

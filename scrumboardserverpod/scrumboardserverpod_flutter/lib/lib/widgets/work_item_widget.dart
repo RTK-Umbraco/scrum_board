@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:scrumboardserverpod_flutter/models/work_item.dart';
+import 'package:scrumboardserverpod_client/scrumboardserverpod_client.dart';
+import 'package:scrumboardserverpod_flutter/lib/widgets/work_item_delete_button.dart';
 
 class WorkItemWidget extends StatelessWidget {
   const WorkItemWidget({super.key, required this.workItem});
@@ -17,8 +18,11 @@ class WorkItemWidget extends StatelessWidget {
       width: 280,
       child: Column(children: [
         Text('Item work id'),
-        Text(workItem.header),
+        Text(workItem.headline),
         Text(workItem.description),
+        WorkItemDeleteWidget(
+          workItemId: workItem.id!,
+        ),
         // const UserDropDownButton()
       ]),
     );

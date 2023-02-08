@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:scrumboardserverpod_client/scrumboardserverpod_client.dart';
 import 'package:scrumboardserverpod_flutter/bloc/non_genric/bloc/work_item_bloc.dart';
 import 'package:scrumboardserverpod_flutter/models/user.dart';
-import 'package:scrumboardserverpod_flutter/models/work_item.dart';
 import 'package:scrumboardserverpod_flutter/widgets/user_drop_down_button.dart';
-
-// final ValueChangedBloc<ValueChangedEvent<User>> userBloc =
-//     ValueChangedBloc(ValueChangedEvent(User('Test user')));
 
 class ScrumboardItemForm extends StatefulWidget {
   const ScrumboardItemForm({super.key});
@@ -17,7 +14,7 @@ class ScrumboardItemForm extends StatefulWidget {
 class _ScrumboardItemFormState extends State<ScrumboardItemForm> {
   final WorkItemChangedBloc _workItemChangedBloc = WorkItemChangedBloc();
 
-  late WorkItem? workItem = WorkItem(header: '', description: '');
+  late WorkItem? workItem = WorkItem(headline: '', description: '');
 
   final _formKey = GlobalKey<FormState>();
   @override
@@ -35,14 +32,14 @@ class _ScrumboardItemFormState extends State<ScrumboardItemForm> {
               child: Column(
                 children: [
                   TextFormField(
-                    initialValue: workItem?.header,
+                    initialValue: workItem?.headline,
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       labelText: 'Work item header',
                       hintText: 'Insert Work item header of the work item',
                     ),
                     onSaved: (String? value) {
-                      workItem?.header = value ?? '';
+                      workItem?.headline = value ?? '';
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -90,7 +87,7 @@ class _ScrumboardItemFormState extends State<ScrumboardItemForm> {
                                 _formKey.currentState?.save();
 
                                 var itemWork = WorkItem(
-                                    header: workItem!.header,
+                                    headline: workItem!.headline,
                                     description: workItem!.description);
 
                                 Navigator.pop(context, itemWork);

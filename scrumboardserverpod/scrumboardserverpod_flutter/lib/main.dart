@@ -3,7 +3,7 @@ import 'package:scrumboardserverpod_client/scrumboardserverpod_client.dart';
 import 'package:scrumboardserverpod_flutter/screens/scrum_board.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
 
-var client = Client('http://localost:8080/')
+var client = Client('http://localhost:8080/')
   ..connectivityMonitor = FlutterConnectivityMonitor();
 
 void main() {
@@ -12,7 +12,6 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -29,7 +28,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const ScrumBoard(),
+      home: ScrumBoard(client: client),
     );
   }
 }
@@ -66,6 +65,21 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  addWorkItem() async {
+    var workitem = WorkItem(
+        headline: 'This is headline of the work item',
+        description: 'This is the description of the work item');
+
+    try {
+      var result = await client.workItem.addWorkItem(workitem);
+      if (result) {
+        setState(() {});
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -81,13 +95,15 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
 
-      body: const ScrumBoard(),
+      body: ScrumBoard(
+        client: client,
+      ),
 
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _incrementCounter,
+      //   tooltip: 'Increment',
+      //   child: const Icon(Icons.add),
+      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
